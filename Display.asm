@@ -7,13 +7,22 @@ board:  .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
 	.byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
 
 size:   .word 4 # Specify dimension of the grid for further traversal
-nextRow: .asciiz "\n" # new line for next row 
+nextRow: .asciiz "\n" # new line for next row
+
+.extern equations, 64
+.extern answers, 32
+.globl start
 
 .text
-.globl main
-main:
+
+start:
     la $a0, board # Load board for printing
     lw $a1, size # Load the size for printing
+    
+    #loads adresses of the equations array and answer array into $t6 and $t7
+    la $t6, equations
+    la $t7, answers
+  
 
     li $t1, 0 # Row counter
     j rowLoop # enter the outer loop
