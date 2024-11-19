@@ -1,10 +1,12 @@
 .data
-equations: .space 64
-answers: .space 32
 
+.extern equations, 64
+.extern answers, 32
+
+.globl startArray
 .text
 
-main:
+startArray:
 	la $t0, equations
 	li $t1, 0
 	la $t2, answers
@@ -37,7 +39,7 @@ loopSolutions:
 	#when $t1 is 8, reset the adress of $t0, the address of $t2, and exit 
 	la $t0, equations
 	la $t2, answers
-	j exit
+	jal start
 
 solutions:
 	#loads the current and next values of the array into $t4 and $t5
@@ -54,7 +56,7 @@ solutions:
 	addi $t2, $t2, 4
 	addi $t1, $t1, 1
 	j loopSolutions
-	
+
 exit:
 	li $v0, 10
 	syscall
