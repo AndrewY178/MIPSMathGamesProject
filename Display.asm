@@ -1,19 +1,26 @@
 .data
 
 # DISPLAY BOARD (each cell is 3 bytes:  ? )
-board:  .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
-	.byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
-	.byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
-	.byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
+board:   .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
+	 .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
+	 .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
+	 .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
 
 size:   .word 4 # Specify dimension of the grid for further traversal
 nextRow: .asciiz "\n" # new line for next row
 
 .extern equations, 64
 .extern answers, 32
+.extern selectedCard, 1
 .globl start
+.globl replaceValue
 
 .text
+
+replaceValue:
+    lw $t8, selectedCard
+    li $t9, '3'
+    sb $t9, board($t8)
 
 start:
     la $a0, board # Load board for printing
@@ -85,7 +92,9 @@ nextRowInLoop:
     
     addi $t1, $t1, 1  # Increment row counter
     j rowLoop # Go back to print the next row
+    
 
 exit:
+    jr $ra
     li $v0, 10 # Exit the program
     syscall

@@ -3,8 +3,11 @@
 .extern equations, 64
 .extern answers, 32
 
+.extern selectedCard, 1
 .globl startArray
+numberPrompt:    .asciiz  "Choose a card 1-16 to flip: "
 .text
+
 
 startArray:
 	la $t0, equations
@@ -39,7 +42,7 @@ loopSolutions:
 	#when $t1 is 8, reset the adress of $t0, the address of $t2, and exit 
 	la $t0, equations
 	la $t2, answers
-	jal start
+	j firstGameLoop
 
 solutions:
 	#loads the current and next values of the array into $t4 and $t5
@@ -56,7 +59,23 @@ solutions:
 	addi $t2, $t2, 4
 	addi $t1, $t1, 1
 	j loopSolutions
+	
+firstGameLoop:
+	#print board
+	jal start
+	#request a card from user
+	la $a0, numberPrompt
+	li $v0, 4
+	syscall
+	li $v0, 5
+	syscall
+	la $t3, selectedCard
+	sw $v0, selectedCard
+	jal replaceValue
+	jal start
 
+	
+	
 exit:
 	li $v0, 10
 	syscall
