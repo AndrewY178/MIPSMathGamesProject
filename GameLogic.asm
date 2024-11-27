@@ -73,9 +73,6 @@ firstGameLoop:
 	sw $v0, selectedCard
 	jal replaceValue
 	jal start
-
-	
-	
 exit:
 	li $v0, 10
 	syscall
