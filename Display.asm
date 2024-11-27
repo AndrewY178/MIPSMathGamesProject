@@ -1,7 +1,8 @@
 .data
 
 # DISPLAY BOARD (each cell is 3 bytes:  ? )
-board:   .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
+board:
+	 .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
 	 .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
 	 .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
 	 .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
@@ -14,12 +15,61 @@ nextRow: .asciiz "\n" # new line for next row
 .extern selectedCard, 1
 .globl start
 .globl replaceValue
-
+.globl checkCardValue
+.globl checkCardValue2
 .text
 
+#checks if the card value is valid and jumps back to prompt if not
+checkCardValue:
+	lw $t8, selectedCard   # Load selected card number (1ñ16)
+    subi $t8, $t8, 1       # Convert to 0-based index (0ñ15)
+
+    # Calculate row and column
+    li $t9, 4              # Number of columns
+    div $t0, $t8, $t9      # $t0 = row number
+    mflo $t0
+    rem $t1, $t8, $t9      # $t1 = column number
+
+    # Calculate offset in the board array
+    mul $t0, $t0, 12       # row_offset = row * 12
+    mul $t1, $t1, 3        # col_offset = col * 3
+    add $t3, $t0, $t1      # index = row_offset + col_offset
+
+    # Compares the selected card with '?' to see if it is a valid value
+    li $t2, '?'
+    addi $t3, $t3, 1
+    lb $t4, board($t3)
+    
+    bne $t2, $t4, firstCardPrompt
+    jr $ra
+    
+#checks if the card value is valid and jumps back to prompt if not
+checkCardValue2:
+	lw $t8, selectedCard   # Load selected card number (1ñ16)
+    subi $t8, $t8, 1       # Convert to 0-based index (0ñ15)
+
+    # Calculate row and column
+    li $t9, 4              # Number of columns
+    div $t0, $t8, $t9      # $t0 = row number
+    mflo $t0
+    rem $t1, $t8, $t9      # $t1 = column number
+
+    # Calculate offset in the board array
+    mul $t0, $t0, 12       # row_offset = row * 12
+    mul $t1, $t1, 3        # col_offset = col * 3
+    add $t3, $t0, $t1      # index = row_offset + col_offset
+
+    # Compares the selected card with '?' to see if it is a valid value
+    li $t2, '?'
+    addi $t3, $t3, 1
+    lb $t4, board($t3)
+    
+    bne $t2, $t4, secondCardPrompt
+    jr $ra
+
 replaceValue:
-    lw $t8, selectedCard   # Load selected card number (1–16)
-    subi $t8, $t8, 1       # Convert to 0-based index (0–15)
+    lw $t8, selectedCard   # Load selected card number (1ñ16)
+    subi $t8, $t8, 1       # Convert to 0-based index (0ñ15)
 
     # Calculate row and column
     li $t9, 4              # Number of columns

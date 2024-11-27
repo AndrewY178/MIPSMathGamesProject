@@ -5,6 +5,8 @@
 
 .extern selectedCard, 1
 .globl startArray
+.globl firstCardPrompt
+.globl secondCardPrompt
 numberPrompt:    .asciiz  "Choose a card 1-16 to flip: "
 .text
 
@@ -63,16 +65,39 @@ solutions:
 firstGameLoop:
 	#print board
 	jal start
-	#request a card from user
-	la $a0, numberPrompt
-	li $v0, 4
-	syscall
-	li $v0, 5
-	syscall
-	la $t3, selectedCard
-	sw $v0, selectedCard
-	jal replaceValue
-	jal start
+	secondGameLoop:
+	#request the first card from user
+		firstCardPrompt:
+			la $a0, numberPrompt
+			li $v0, 4
+			syscall
+			li $v0, 5
+			syscall
+			#check if the card is a valid choice
+			sw $v0, selectedCard
+			bge $v0, 17, firstCardPrompt
+			ble $v0, 0, firstCardPrompt
+			jal checkCardValue
+			
+			#store if it is a valid number
+			jal replaceValue
+			jal start
+	#request the second card from user
+		secondCardPrompt:
+			la $a0, numberPrompt
+			li $v0, 4
+			syscall
+			li $v0, 5
+			syscall
+			#check if the card is a valid choice
+			sw $v0, selectedCard
+			bge $v0, 17, secondCardPrompt
+			ble $v0, 0, secondCardPrompt
+			jal checkCardValue2
+			
+			#store if it is a valid number
+			jal replaceValue
+			jal start
 exit:
 	li $v0, 10
 	syscall
