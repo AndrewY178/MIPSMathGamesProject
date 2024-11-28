@@ -2,9 +2,9 @@
 .extern equations, 64
 .extern answers, 64
 .extern shuffledCards, 128
+.globl shufflePairs
 
 .text
-.globl shufflePairs
 shufflePairs: 
 	la $t0, equations     # Load address of equations array
     li $t1, 7
@@ -36,7 +36,62 @@ shuffleEquations:
     # Decrease counter and continue the loop if $t1 >= 0
     sub $t1, $t1, 1				# Decrease counter
     bgez $t1, shuffleEquations	# Loop until counter reaches 0
-   	jal printArray
+   	
+reset:
+    la $t0, equations           # Base address of equations array
+    li $t1, 0                   # Counter for equations (pairs pulled)
+    la $t2, answers             # Base address of answers array
+    li $t3, 0                   # Counter for answers (pairs pulled)
+    la $t4, shuffledCards       # Base address of shuffledCards array
+    li $t5, 0                   # Counter for shuffledCards (pairs written)
+
+LoopForBig:
+	bge $t5, 16, exitShuffleCards
+	
+	li $v0, 42                  # Syscall for random number
+    syscall
+    andi $t6, $a0, 1            # Mask to get random number (0 or 1)
+
+ 	beqz $t6, pullEquation
+ 	
+ 	bgt $t3, 7, pullEquation  # Skip if answers are exhausted
+ 	
+    j pullAnswer
+    
+pullEquation:
+	bgt $t1, 7, LoopForBig
+	# Calculate the address of the current equation pair (t1 * 8)
+    mul $t7, $t1, 8             # t7 = t1 * 8 (2 words per pair, 4 bytes per word)
+    add $t7, $t0, $t7           # Address of the current equation pair
+
+    lw $t8, 0($t7)              # Load first word of equation pair
+    sw $t8, 0($t4)              # Store first word in shuffledCards
+    lw $t9, 4($t7)              # Load second word of equation pair
+    sw $t9, 4($t4)              # Store second word in shuffledCards
+
+    # Increment counters
+    addi $t1, $t1, 1            # Increment equations counter
+    addi $t4, $t4, 8            # Move to next pair slot in shuffledCards
+    addi $t5, $t5, 1            # Increment shuffledCards counter (pair added)
+    j LoopForBig              # Continue loop
+    
+pullAnswer:
+	# Calculate the address of the current answer pair (t3 * 8)
+    mul $t7, $t3, 8             # t7 = t3 * 8 (2 words per pair, 4 bytes per word)
+    add $t7, $t2, $t7           # Address of the current answer pair
+
+    # Load the pair and store in shuffledCards
+    lw $t8, 0($t7)              # Load first word of answer pair
+    sw $t8, 0($t4)              # Store first word in shuffledCards
+    lw $t9, 4($t7)              # Load second word of answer pair
+    sw $t9, 4($t4)              # Store second word in shuffledCards
+
+    # Increment counters
+    addi $t3, $t3, 1            # Increment answers counter
+    addi $t4, $t4, 8            # Move to next pair slot in shuffledCards
+    addi $t5, $t5, 1            # Increment shuffledCards counter (pair added)
+    j LoopForBig              # Continue loop
+	
 exitShuffleCards:
     # Exit the function
     jr $ra

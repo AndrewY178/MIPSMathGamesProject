@@ -12,11 +12,13 @@ nextRow: .asciiz "\n" # new line for next row
 
 .extern equations, 64
 .extern answers, 64
-.extern selectedCard, 1
+.extern shuffledCards, 128
+.extern selectedCard, 4
 .globl start
 .globl replaceValue
 .globl checkCardValue
 .globl checkCardValue2
+
 .text
 
 #checks if the card value is valid and jumps back to prompt if not

@@ -3,8 +3,10 @@
 .extern answers 64
 .extern shuffledCards 128
 newline: .asciiz "\n"
-.text
 .globl printArray
+
+.text
+
 printArray:
 la $t0, equations  # Load base address of equations
     li $t1, 0          # Counter for array

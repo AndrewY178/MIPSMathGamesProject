@@ -2,12 +2,14 @@
 
 .extern equations, 64
 .extern answers, 64
+.extern shuffledCards, 128
 
-.extern selectedCard, 1
+.extern selectedCard, 4
 .globl startArray
 .globl firstCardPrompt
 .globl secondCardPrompt
 numberPrompt:    .asciiz  "Choose a card 1-16 to flip: "
+
 .text 
 
 startArray:
