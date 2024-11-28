@@ -11,7 +11,7 @@ size:   .word 4 # Specify dimension of the grid for further traversal
 nextRow: .asciiz "\n" # new line for next row
 
 .extern equations, 64
-.extern answers, 32
+.extern answers, 64
 .extern selectedCard, 1
 .globl start
 .globl replaceValue

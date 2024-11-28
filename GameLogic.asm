@@ -1,15 +1,14 @@
 .data
 
 .extern equations, 64
-.extern answers, 32
+.extern answers, 64
 
 .extern selectedCard, 1
 .globl startArray
 .globl firstCardPrompt
 .globl secondCardPrompt
 numberPrompt:    .asciiz  "Choose a card 1-16 to flip: "
-.text
-
+.text 
 
 startArray:
 	la $t0, equations
@@ -44,6 +43,7 @@ loopSolutions:
 	#when $t1 is 8, reset the adress of $t0, the address of $t2, and exit 
 	la $t0, equations
 	la $t2, answers
+	jal shufflePairs
 	j firstGameLoop
 
 solutions:
@@ -55,6 +55,9 @@ solutions:
 	mul $t3, $t4, $t5
 	#store that value into array at $t2
 	sw $t3, 0($t2)
+	li $t3, 0			#put a 0 marker to indicate that it is a answer 
+	addi $t2, $t2, 4	#adjust array
+	sw $t3, 0($t2)		#insert 0 to array
 	
 	#adjust the indexes for both arrays and the counter
 	addi $t0, $t0, 8
