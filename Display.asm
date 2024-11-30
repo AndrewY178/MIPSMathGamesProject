@@ -176,7 +176,11 @@ returnToQuestionMark:
     li $t4, '?'
     addi $t3, $t3, 1
     sb $t4, board($t3)
-    subi $t3, $t3, 1
+    li $t4, ' '
+    addi $t3, $t3, 1
+    sb $t4, board($t3)
+    subi $t3, $t3, 2
+    sb $t4, board($t3)
 
     jr $ra
 start:

@@ -8,8 +8,12 @@
 .globl startArray
 .globl firstCardPrompt
 .globl secondCardPrompt
-numberPrompt:    .asciiz  "Choose a card 1-16 to flip: "
-nextRow: .asciiz "\n" # new line for next row
+numberPrompt:	.asciiz  "Choose a card 1-16 to flip: "
+nextRow:	.asciiz "\n" # new line for next row
+matchFound:	.asciiz  "Match Found! "
+matchNotFound:	.asciiz  "No Match, Try Again! "
+winnerWinnerChickenDinner:	.asciiz  "CONGRATS! You won! "
+
 .text
 
 
@@ -83,7 +87,7 @@ firstGameLoop:
 			
 			#error where the first card disappears happens here
 			sw $v0, selectedCard
-			move $s3, $v0		#assign the first number that the user put as s3
+			move $s4, $v0		#assign the first number that the user put as s3
 			
 			#check if the card is a valid choice	
 			bge $v0, 17, firstCardPrompt
@@ -107,7 +111,7 @@ firstGameLoop:
 			
 			#check if the card is a valid choice
 			sw $v0, selectedCard
-			move $s4, $v0	
+			move $s5, $v0	
 			bge $v0, 17, secondCardPrompt
 			ble $v0, 0, secondCardPrompt
 			jal checkCardValue2
@@ -115,7 +119,6 @@ firstGameLoop:
 			
 			jal processCardValue
     		move $s7, $v0
-    		
     		jal replaceValue
 			jal start
 			
@@ -124,20 +127,34 @@ firstGameLoop:
 			syscall
 			syscall
 			
-		#checks if the values are equal
 		comparingValues:
 			beq $s6, $s7, handleMatch
 			j resetQuestionMark
 		handleMatch:
+			la $a0, matchFound
+    		li $v0, 4
+    		syscall
+    		la $a0, nextRow
+			li $v0, 4
+			syscall
+    		
     		addi $s2, $s2, 1            # Increment match counter
     		jal checkGameStatus         # Check if the game should end
-    		j secondGameLoop            # Continue to the next game loop
+    		j firstGameLoop            # Continue to the next game loop
 
 		resetQuestionMark:
-			sw $s3, selectedCard
-			jal returnToQuestionMark
 			sw $s4, selectedCard
 			jal returnToQuestionMark
+			sw $s5, selectedCard
+			jal returnToQuestionMark
+			
+			la $a0, matchNotFound
+    		li $v0, 4
+    		syscall
+    		la $a0, nextRow
+			li $v0, 4
+			syscall
+			
 			j firstGameLoop
 		checkGameStatus:
     		li $t0, 8                  # Load the number of matches needed to end the game into $t0
@@ -145,7 +162,12 @@ firstGameLoop:
     		jr $ra                     # Return to the calling function if the game is not over
 
 		endGame:
-    		# Insert logic to end the game
+			la $a0, winnerWinnerChickenDinner
+    		li $v0, 4
+    		syscall
+    		la $a0, nextRow
+			li $v0, 4
+			syscall
     		li $v0, 10                # Load the syscall code for program termination
     		syscall                   # End the program
 
@@ -153,7 +175,7 @@ firstGameLoop:
 processCardValue:
     # Load the selected card number and convert to 0-based index
     lw $, selectedCard
-    subi $t8, $t8, 1        # Convert to 0-based index
+    #subi $t8, $t8, 1        # Convert to 0-based index
 
     # Calculate offset in shuffledCards array (each card has two integers)
     mul $t9, $t8, 8         # Each card pair is 8 bytes (2 words)
