@@ -143,7 +143,7 @@ firstGameLoop:
 			li $v0, 4
 			syscall
     			
-    		#increment match counter and check if thee game should end
+    		#increment match counter and check if the game should end
     		addi $s2, $s2, 1
     		jal checkGameStatus
     			
