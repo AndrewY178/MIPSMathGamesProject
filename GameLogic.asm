@@ -3,8 +3,9 @@
 .extern equations, 64
 .extern answers, 64
 .extern shuffledCards, 128
-
 .extern selectedCard, 4
+
+
 .globl startArray
 .globl firstCardPrompt
 .globl secondCardPrompt
@@ -15,8 +16,6 @@ matchNotFound:	.asciiz  "No Match, Try Again! "
 winnerWinnerChickenDinner:	.asciiz  "CONGRATS! You won! "
 
 .text
-
-
 startArray:
 	la $t0, equations
 	li $t1, 0
@@ -61,11 +60,12 @@ solutions:
 	
 	#multiply those together and put them into $t3
 	mul $t3, $t4, $t5
-	#store that value into array at $t2
 	sw $t3, 0($t2)
-	li $t3, 0			#put a 0 marker to indicate that it is a answer 
-	addi $t2, $t2, 4	#adjust array
-	sw $t3, 0($t2)		#insert 0 to array
+	
+	#puts a 0 in the next index to indicate that it
+	li $t3, 0
+	addi $t2, $t2, 4
+	sw $t3, 0($t2)
 	
 	#adjust the indexes for both arrays and the counter
 	addi $t0, $t0, 8
@@ -74,10 +74,8 @@ solutions:
 	j loopSolutions
 	
 firstGameLoop:
-	#print board
 	jal start
 	secondGameLoop:
-	#request the first card from user
 		firstCardPrompt:
 			la $a0, numberPrompt
 			li $v0, 4
@@ -85,9 +83,8 @@ firstGameLoop:
 			li $v0, 5
 			syscall
 			
-			#error where the first card disappears happens here
 			sw $v0, selectedCard
-			move $s4, $v0		#assign the first number that the user put as s3
+			move $s4, $v0
 			
 			#check if the card is a valid choice	
 			bge $v0, 17, firstCardPrompt
@@ -101,7 +98,7 @@ firstGameLoop:
 			jal replaceValue
 			
 			jal start
-	#request the second card from user
+		#request the second card from user
 		secondCardPrompt:
 			la $a0, numberPrompt
 			li $v0, 4
@@ -115,87 +112,119 @@ firstGameLoop:
 			bge $v0, 17, secondCardPrompt
 			ble $v0, 0, secondCardPrompt
 			jal checkCardValue2
-			#store if it is a valid number
 			
+			#store if it is a valid number
 			jal processCardValue
     		move $s7, $v0
     		jal replaceValue
 			jal start
 			
+			#adds a 1 second delay when the second number is inputted and the board is displayed
+            li $v0, 32
+            li $a0, 1000
+            syscall
+			
+			#prints a new line
 			la $a0, nextRow
 			li $v0, 4
-			syscall
 			syscall
 			
 		comparingValues:
 			beq $s6, $s7, handleMatch
 			j resetQuestionMark
 		handleMatch:
+			#if a match is found, output the needed text
 			la $a0, matchFound
     		li $v0, 4
     		syscall
+    			
+    		#prints a new line
     		la $a0, nextRow
 			li $v0, 4
 			syscall
-    		
-    		addi $s2, $s2, 1            # Increment match counter
-    		jal checkGameStatus         # Check if the game should end
-    		j firstGameLoop            # Continue to the next game loop
+    			
+    		#increment match counter and check if thee game should end
+    		addi $s2, $s2, 1
+    		jal checkGameStatus
+    			
+    		#play the sound for getting a match
+    		jal correctSound
+    			
+    		#go to a new line
+    		la $a0, nextRow
+			li $v0, 4
+			syscall
+    		j firstGameLoop
 
 		resetQuestionMark:
-			sw $s4, selectedCard
+			#loading each of the user inputted values and jumping to returnToQuestionMark
+			sw $s4, selectedCard	
 			jal returnToQuestionMark
 			sw $s5, selectedCard
 			jal returnToQuestionMark
 			
+			#jumps to matchNotFound
 			la $a0, matchNotFound
     		li $v0, 4
     		syscall
+    			
     		la $a0, nextRow
+			li $v0, 4
+			syscall
+			
+			#outputs the sound for not geetting a match
+			jal incorrectSound
+			
+			la $a0, nextRow
 			li $v0, 4
 			syscall
 			
 			j firstGameLoop
 		checkGameStatus:
-    		li $t0, 8                  # Load the number of matches needed to end the game into $t0
-    		beq $s2, $t0, endGame      # If $s2 equals 8, branch to endGame
-    		jr $ra                     # Return to the calling function if the game is not over
+		#if the number of matches required to end the game has been reached, jump to endGame
+    		li $t0, 8
+    		beq $s2, $t0, endGame
+    		jr $ra
 
-		endGame:
-			la $a0, winnerWinnerChickenDinner
-    		li $v0, 4
-    		syscall
-    		la $a0, nextRow
-			li $v0, 4
-			syscall
-    		li $v0, 10                # Load the syscall code for program termination
-    		syscall                   # End the program
+endGame:
+	la $a0, winnerWinnerChickenDinner
+    li $v0, 4
+    syscall
+    jal winnerSound
+    la $a0, nextRow
+	li $v0, 4
+	syscall
+			
+	#ends the game
+    li $v0, 10
+    syscall
 
 			
 processCardValue:
-    # Load the selected card number and convert to 0-based index
+    #Load the selected card number and convert to 0-based index
     lw $, selectedCard
-    #subi $t8, $t8, 1        # Convert to 0-based index
 
-    # Calculate offset in shuffledCards array (each card has two integers)
-    mul $t9, $t8, 8         # Each card pair is 8 bytes (2 words)
-    la $t0, shuffledCards   # Base address of shuffledCards
-    add $t0, $t0, $t9       # Address of the first value of the pair
+    #move the base address of the shuffledCards array
+    mul $t9, $t8, 8
+    la $t0, shuffledCards
+    add $t0, $t0, $t9
 
-    # Load the two integers from the pair
-    lw $t1, 0($t0)          # First value of the pair
-    lw $t2, 4($t0)          # Second value of the pair
+    #Load the two integers from the pair
+    lw $t1, 0($t0)
+    lw $t2, 4($t0)
 	
-    # Determine if it’s an equation or an answer
-    beqz $t2, isAnswer      # If second value is 0, it’s an answer
-    # Process as equation: calculate product
-    mul $v0, $t1, $t2       # $v0 = product
+    #Determine if it’s an equation or an answer
+    beqz $t2, isAnswer
+    
+    #Process as equation: calculate product
+    mul $v0, $t1, $t2
     
     jr $ra
 
 isAnswer:
-    move $v0, $t1           # For an answer, return the first value
+    move $v0, $t1
     jr $ra
+
 
 exit:
 	li $v0, 10

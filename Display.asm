@@ -1,14 +1,13 @@
 .data
 
-# DISPLAY BOARD (each cell is 3 bytes:  ? )
 board:
 	 .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
 	 .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
 	 .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
 	 .byte ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' ', ' ', '?', ' '
 
-size:   .word 4 # Specify dimension of the grid for further traversal
-nextRow: .asciiz "\n" # new line for next row
+size:   .word 4
+nextRow: .asciiz "\n"
 
 .extern equations, 64
 .extern answers, 32
@@ -23,23 +22,23 @@ nextRow: .asciiz "\n" # new line for next row
 .text
 #checks if the card value is valid and jumps back to prompt if not
 checkCardValue:
-	lw $t8, selectedCard   # Load selected card number (1�16)
-    subi $t8, $t8, 1       # Convert to 0-based index (0�15)
+	lw $t8, selectedCard
+    subi $t8, $t8, 1
     
     lw $t7, shuffledCards
 
-    # Calculate row and column
-    li $t9, 4              # Number of columns
-    div $t0, $t8, $t9      # $t0 = row number
+	#get row and columns
+    li $t9, 4
+    div $t0, $t8, $t9
     mflo $t0
-    rem $t1, $t8, $t9      # $t1 = column number
+    rem $t1, $t8, $t9
 
-    # Calculate offset in the board array
-    mul $t0, $t0, 12       # row_offset = row * 12
-    mul $t1, $t1, 3        # col_offset = col * 3
-    add $t3, $t0, $t1      # index = row_offset + col_offset
+    #offset for finding position
+    mul $t0, $t0, 12
+    mul $t1, $t1, 3
+    add $t3, $t0, $t1
 
-    # Compares the selected card with '?' to see if it is a valid value
+    #compare selectedCard with '?' to see if they are the same
     li $t2, '?'
     addi $t3, $t3, 1
     lb $t4, board($t3)
@@ -49,21 +48,21 @@ checkCardValue:
     
 #checks if the card value is valid and jumps back to prompt if not
 checkCardValue2:
-	lw $t8, selectedCard   # Load selected card number
-    subi $t8, $t8, 1       # Convert to 0-based index
+	lw $t8, selectedCard
+    subi $t8, $t8, 1
 
-    # Calculate row and column
-    li $t9, 4              # Number of columns
-    div $t0, $t8, $t9      # $t0 = row number
+	#get row and columns
+    li $t9, 4
+    div $t0, $t8, $t9
     mflo $t0
-    rem $t1, $t8, $t9      # $t1 = column number
+    rem $t1, $t8, $t9
 
-    # Calculate offset in the board array
-    mul $t0, $t0, 12       # row_offset = row * 12
-    mul $t1, $t1, 3        # col_offset = col * 3
-    add $t3, $t0, $t1      # index = row_offset + col_offset
+    #offset for finding position
+    mul $t0, $t0, 12
+    mul $t1, $t1, 3
+    add $t3, $t0, $t1
 
-    # Compares the selected card with '?' to see if it is a valid value
+    #compare selectedCard with '?' to see if they are the same
     li $t2, '?'
     addi $t3, $t3, 1
     lb $t4, board($t3)
@@ -72,28 +71,27 @@ checkCardValue2:
     jr $ra
 
 replaceValue:
-    lw $t8, selectedCard   # Load selected card number (1�16)
-    subi $t8, $t8, 1       # Convert to 0-based index (0�15)
+    lw $t8, selectedCard
+    subi $t8, $t8, 1
 
-    # Calculate row and column
-    li $t9, 4              # Number of columns
-    div $t0, $t8, $t9      # $t0 = row number
+	#get row and columns
+    li $t9, 4
+    div $t0, $t8, $t9
     mflo $t0
-    rem $t1, $t8, $t9      # $t1 = column number
+    rem $t1, $t8, $t9
 
-    # Calculate offset in the board array
-    mul $t0, $t0, 12       # row_offset = row * 12
-    mul $t1, $t1, 3        # col_offset = col * 3
-    add $t3, $t0, $t1      # index = row_offset + col_offset
+    #offset for finding position
+    mul $t0, $t0, 12
+    mul $t1, $t1, 3
+    add $t3, $t0, $t1
 
 	#gets the correct index for the array
     mul $t8, $t8, 2
     sll $t8, $t8, 2 
     
     #loads shuffledCards into $t7
-    la $t7, shuffledCards
+    la $t7, shuffledCards 
     
-    #sets the base adress of $t7 to the current index     
     add $t7, $t7, $t8
     
     #gets the next value in the array to determine weather the current index is an equation or solution
@@ -125,7 +123,7 @@ solutionOutput:
 	addi $s0, $t6, '0'
 	addi $s1, $s1, '0'
 	
-	#puts everything onto the board
+	#puts answer onto the board
 	sb $s0, board($t3)
 	addi $t3, $t3, 1
 	sb $s1, board($t3)
@@ -134,18 +132,18 @@ solutionOutput:
 	
 
 equationOutput:
-    # Load the values shuffledArray
+    #load the values from shuffledArray
     lw $s0, 0($t7)
     lw $s1, 4($t7)
 
-    # Convert to ASCII
+    #convert to ASCII
     addi $s0, $s0, '0'
     addi $s1, $s1, '0'     
 
-    # Load 'x' into $s3
+    #load 'x' into $s3
     li $s3, 'x'
 	
-	#puts everything onto the board
+	#puts equation onto the board
     sb $s0, board($t3)     
 
     addi $t3, $t3, 1       
@@ -158,8 +156,8 @@ equationOutput:
     jr $ra
 	
 returnToQuestionMark:
-	lw $t8, selectedCard   # Load selected card number (1�16)
-    subi $t8, $t8, 1       # Convert to 0-based index (0�15)
+	lw $t8, selectedCard   # Load selected card number (1-16)
+    subi $t8, $t8, 1       # Convert to 0-based index (0-15)
 
     # Calculate row and column
     li $t9, 4              # Number of columns
@@ -176,6 +174,8 @@ returnToQuestionMark:
     li $t4, '?'
     addi $t3, $t3, 1
     sb $t4, board($t3)
+    
+    #add a space before and after the question mark
     li $t4, ' '
     addi $t3, $t3, 1
     sb $t4, board($t3)
@@ -184,83 +184,72 @@ returnToQuestionMark:
 
     jr $ra
 start:
-    la $a0, board # Load board for printing
-    lw $a1, size # Load the size for printing
+    la $a0, board
+    lw $a1, size
 
-    li $t1, 0 # Row counter
-    j rowLoop # enter the outer loop
+    li $t1, 0
+    j rowLoop
 
-# Outer loop (row loop)
+#Row Loop
 rowLoop:
-    bge $t1, $a1, exit # If all rows are printed, exit the program
-    # Inner loop (column loop)
-    li $t2, 0 # Column counter
+    bge $t1, $a1, exit
+    li $t2, 0
+#Column Loop
 colLoop:
-    bge $t2, $a1, nextRowInLoop # If all columns in the row are printed, go to the next row
+    bge $t2, $a1, nextRowInLoop
 
-    # Print left border (~)
-    li $a0, 126 # ASCII for ~
+    #print left border
+    li $a0, 126
     li $v0, 11
     syscall
 
-    mul $t3, $t1, 12 # row * 12 (for row offest)
-    mul $t4, $t2, 3  # column * 3 (for column offset)
-    add $t3, $t3, $t4 # offset of both row and column combined
+	#offset for finding position
+    mul $t3, $t1, 12
+    mul $t4, $t2, 3
+    add $t3, $t3, $t4
 	
-	# Prints a space between cells
-    #li $a0, 32 # ASCII for space
-    #li $v0, 11
-    #syscall
     
-    # Print the first character of the cell
+    #print the first character of the cell
     lb $t5, board($t3) # needed to print out ? 
     move $a0, $t5 
     li $v0, 11
     syscall
 
-    # Print the second character of the cell
-    addi $t3, $t3, 1 # needed to print out ? 
+    #print the second character of the cell
+    addi $t3, $t3, 1
     lb $t5, board($t3)
     move $a0, $t5
     li $v0, 11
     syscall
 
-    # Print the third character of the cell
-    addi $t3 $t3, 1 # needed to print out ? 
+    #print the third character of the cell
+    addi $t3 $t3, 1
     lb $t5, board($t3)
     move $a0, $t5
     li $v0, 11
     syscall
     
-    # Prints a space between cells
-    #li $a0, 32 # ASCII for space
-    #li $v0, 11
-    #syscall
-
-    # Print right border for the cell (~)
-    li $a0, 126 # ASCII for ~
+    #print right border for the cell (~)
+    li $a0, 126
     li $v0, 11
     syscall
     
-    # Prints a space between cells
-    li $a0, 32 # ASCII for space
+    #prints a space between cells
+    li $a0, 32
     li $v0, 11
     syscall
+    addi $t2, $t2, 1
+    j colLoop 
 
-    addi $t2, $t2, 1 # Increment column counter
-    j colLoop # Go back to print the next column
-
-# Once a full row is printed, proceed to the next row
+#once a full row is printed, go to the next row
 nextRowInLoop:
-    la $a0, nextRow # Printing out the \n
+    la $a0, nextRow
     li $v0, 4
     syscall 
+    addi $t1, $t1, 1
+    j rowLoop
     
-    addi $t1, $t1, 1  # Increment row counter
-    j rowLoop # Go back to print the next row
-    
-
 exit:
     jr $ra
-    li $v0, 10 # Exit the program
+    li $v0, 10
     syscall
